@@ -1,0 +1,95 @@
+module FullAdder1 (
+    A, B, Cin, Sum, Cout
+    );
+    //start Full Adder module
+    input A, B, Cin;
+    output Sum, Cout;
+    wire s1, c1, c2, c3;
+    xor (s1, A, B);
+    xor (Sum, Cin, s1);
+    and (c1, A, B);
+    and (c2, Cin, s1);
+    or (Cout, c1, c2);
+    //end Full Adder module
+endmodule
+
+module Subtractor (
+    A, B, Bor, Out, BorOut
+    );
+    //start subtractor module
+    input A, B, Bor;
+    output Out, BorOut;
+    wire W1, W2, W3, W4, W5;
+    not (W1, A);
+    xor (W2, B, W1);
+    and (W3, W1, B);
+    not (W4, W2);
+    and (W5, W4, Bor);
+    xor (Out, Bor, W2);
+    or (BorOut, W3, W5);
+    //end subtractor module
+
+module MUX8TO1 (
+    M0, M1, M2, M3, M4, M5, M6, M7, S0, S1, S2, MUXOUT
+    );
+    //start Multiplexer module
+    input M0, M1, M2, M3, M4, M5, M6, M7, S0, S1, S2;
+    output MUXOUT;
+    wire W0, W1, W2, W3, W4, W5, W6, W7, S0n, S1n, S2n;
+    not (S0n, S0);
+    not (S1n, S1);
+    not (S2n, S2);
+    and (W0, S0n, S1n, S2n, M0);
+    and (W1, S0, S1n, S2n, M1);
+    and (W2, S0n, S1, S2n, M2);
+    and (W3, S0, S1, S2n, M3);
+    and (W4, S0n, S1n, S2, M4);
+    and (W5, S0, S1n, S2, M5);
+    and (W6, S0n, S1, S2, M6);
+    and (W7, S0, S1, S2, M7);
+    or (MUXOUT, W0, W1, W2, W3, W4, W5, W6, W7);
+    //define output of Multiplexer
+    //end Multiplexer module
+endmodule
+
+module ALU (A, B, ALUOUT, Cin, Cout, SEL
+    );
+    //start ALU
+    input A, B, Cin;
+    output [2:0] ALUOUT;
+    output [2:0] SEL;
+    wire [3:0] Cout, Winc, Wdec, Wand, Wor, Wxor, Whnot;
+    and (Wand, A, B);
+    or (Wor, A, B);
+    xor (Wxor, A, B);
+    not (Whnot, A);
+
+input A, B, Cin;
+    input [2:0] SEL;
+    output [2:0] ALUOUT;
+    output [3:0] Cout;
+    wire [3:0] Wadd, Wsub, Winc, Wdec, Wand, Wor, Wxor, Whnot;
+    and (Wand, A, B);
+    or (Wor, A, B);
+    xor (Wxor, A, B);
+    not (Whnot, A);
+    FullAdder1 m1 (A, B, Cin, Wadd, Cout[0]);  //Call FullAdder module
+    Subtractor m2 (A, B, Cin, Wsub, Cout[1]);  //Call Subtractor module
+    FullAdder1 m3 (A, 1, Cin, Winc, Cout[2]);  //increments
+    Subtractor m4 (A, 1, Cin, Wdec, Cout[3]);  //decrements
+    MUX8TO1 m5 (Wadd, Wsub, Winc, Wdec, Wand, Wor, Whnot, Wxor, SEL[0], SEL[1], SEL[2], ALUOUT[0]);  //Call Multiplexer module
+endmodule
+
+module ALU4bit (A, B, ALUOUT, Cin, Cout, SEL
+    );
+    //Start ALU4bit
+    input Cin;
+    input [3:0] A, B;
+    output [2:0] ALUOUT;
+    output [3:0] Cout;
+    wire [3:0] WCino, WCini, WCinz;
+    ALU alu0 (A[0], B[0], ALUOUT[0], Cin, WCino, SEL);
+    ALU alu1 (A[1], B[1], ALUOUT[1], WCino, WCini, SEL);
+    ALU alu2 (A[2], B[2], ALUOUT[2], WCini, WCinz, SEL);
+    ALU alu3 (A[3], B[3], ALUOUT[3], WCinz, Cout, SEL);
+    //end ALU4bit
